@@ -6,6 +6,8 @@ contract Hello {
     string public message;
     address public owner;
 
+    event Details(address indexed sender, uint tokens);
+
     constructor(string memory _message) {
         message = _message;
         owner = msg.sender;
@@ -16,12 +18,14 @@ contract Hello {
     }
 
     function setMessage(string memory _message) public payable {
-        //first check if modifier is owner
-        require(msg.sender == owner, "Can only be modified my deployer");
         
-        //then check if price requirement is fulfilled
-        require(msg.value > 1 ether, "Not Enough Ether");
+        //first check if modifier is owner
+        require(msg.sender == owner, "Can only be modified by deployer");
+        
+        //then check if price requirement is fulfilled - val >= 0.01 eth
+        require(msg.value >= 1e16, "Not Enough Ether");
         
         message = _message;
+        emit Details(msg.sender, msg.value);
     }
 }

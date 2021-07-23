@@ -1,31 +1,47 @@
-const HelloWorld = artifacest.require("Hello");
+const assert = require('assert');
+
+const HelloWorld = artifacts.require("Hello");
 
 contract("Hello", accounts => {
     it("Constructor Initializes Default Message", async () => {
         const defaultMessage = "constructor arguments will come here";
         
         let instance = await HelloWorld.deployed();
-        let message = instance.message();
+        let message = await instance.message();
         
-        assert.equal(message, defaultMessage);
+        assert.strictEqual(message, defaultMessage);
     });
 
     it("Owner should be accounts[0]", async () => {
         const defaultOwner = accounts[0];
 
         let instance = await HelloWorld.deployed();
-        let owner = instance.owner();
+        let owner = await instance.owner();
 
-        assert.equal(owner, defaultOwner);
+        assert.strictEqual(owner, defaultOwner);
     });
 
-    it("String value was Changed by Owner", async () => {
-        const newStringValue = "This is a test";
+    it("Only owner allowed to change string", async () => {
+        const newString = "This is a New Message";
 
         let instance = await HelloWorld.deployed();
-        instance.setMessage(newStringValue);
-        let newMessage = instance.message();
+        await instance.setMessage(newString, {value: 10**16});
+        let message = await instance.message();
 
-        assert.equal(newStringValue, newMessage);
+        assert.strictEqual(message, newString);
+    });
+
+    it("Revert if msg.value is not sufficient", async () => {
+        let instance = await HelloWorld.deployed();
+        await assert.rejects(async () => {
+            await instance.setMessage("Test", {value: 10**15});
+        });
+    });
+
+    it("Revert if msg.sender is not owner", async() => {
+        let instance = await HelloWorld.deployed();
+        await assert.rejects(async () => {
+            await instance.setMessage("I'm not the owner", {value: 10**18, from: accounts[1]});
+        });
     });
 });

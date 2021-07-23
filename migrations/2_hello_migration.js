@@ -5,7 +5,7 @@ module.exports = function (deployer) {
   deployer.deploy(HelloWorld, "constructor arguments will come here")
     .then(async () => {
       let instance = await HelloWorld.deployed();
-      let message = instance.message();
+      let message = await instance.message();
       return deployer.deploy(InteractiveContract, message);
     });
 };
